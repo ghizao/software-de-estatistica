@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Document</title>
+</head>
+
+<body onload="barra(); barraAtt()">
+    <div>
+        <label for="nome">Nome da variável</label>
+        <input style="display:block; margin-bottom: 10px;" type="text" id="nome">
+
+        <label for="vars">Tipo de Variável</label>
+        <select style="display:block; margin-bottom: 10px;" name="variaveis" id="vars">
+        <option selected>Escolha...</option>
+        <option>Qualitativa Nominal</option>
+        <option>Qualitativa Ordinal</option>
+        <option>Quantitativa Discreta</option>
+        <option>Quantitativa Contínua</option>
+        </select>
+
+        <label for="analise">Tipo de Análise</label>
+        <select style="display:block; margin-bottom: 10px;" name="analises" id="analise">
+        <option selected>Escolha...</option>
+        <option>População</option>
+        <option>Amostra</option>
+        </select>
+
+        <label for="tipoSeparador">Tipo de Variável</label>
+        <select style="display:block; margin-bottom: 10px;" name="separadores" id="tipoSeparador" onchange="barra();">
+        <option selected>Quartil</option>
+        <option>Quintil</option>
+        <option>Decil</option>
+        <option>Porcentil</option>
+        </select>
+
+        <input style="margin-bottom: 10px;" type="range" id="ranges" onchange="barraAtt()">
+        <label for="ranges" id='labelResults'>Teste</label>
+
+        <textarea style="display:block; margin-bottom: 10px;" name="dadosInhos" id="dados" rows="3"></textarea>
+
+        <input style="display:block; margin-bottom: 10px;" type="button" value="Calcular" onclick="Calcular()">
+
+        <div id="resultado">
+
+        </div>
+    </div>
+
+</body>
+<script>
+    function barra() {
+        let tipo = document.getElementById('tipoSeparador');
+        let barra = document.getElementById('ranges');
+        if (tipo.value == 'Quartil') {
+            barra.setAttribute('step', '25');
+        } else if (tipo.value == 'Quintil') {
+            barra.setAttribute('step', '20');
+        }
+        else if (tipo.value == 'Decil') {
+            barra.setAttribute('step', '10');
+        }
+        else if (tipo.value == 'Decil') {
+            barra.setAttribute('step', '10');
+        } else {
+            barra.setAttribute('step', '1');
+        }
+    }
+
+    function barraAtt() {
+        let barra = document.getElementById('ranges');
+        document.getElementById('labelResults').innerText = barra.value;
+    }
+
+    function vetorNaN(vetor) {
+        let aux = 0;
+        for (let i of vetor) {
+            if (isNaN(i)) {
+                aux++
+            } else {
+                aux--
+            }
+        }
+        return (aux == vetor.length) ? true : false
+    }
+
+    function separador(vetor) {
+        let Quantidades = {};
+        let aux;
+        for (let i of vetor) {
+            aux = 0;
+            for (let j of vetor) {
+                if (j === i) {
+                    aux++
+                }
+            }
+            Quantidades[`${i}`] = aux;
+        }
+        return Quantidades;
+    }
+
+    function Calcular() {
+        let nome = document.getElementById('nome').value;
+        let tipoVar = document.getElementById('vars').value;
+        let tipoAna = document.getElementById('analise').value;
+
+        let separatriz = document.getElementById('labelResults').innerText;
+        separatriz = separatriz.split('%');
+        separatriz = parseInt(separatriz[0]) / 100;
+
+        let dados = document.getElementById('dados').value.split(';');
+
+        for (let i = 0; i < dados.length; i++) {
+            if (vetorNaN(dados)) {
+                dados[i] = dados[i].trim();
+                dados[i] = dados[i].toUpperCase();
+            } else {
+                dados[i] = parseInt(dados[i]);
+            }
+        }
+
+        if (tipoVar == 'Qualitativa Nominal') {
+            let results = document.getElementById('resultado');
+            dados.sort();
+            let objDados = separador(dados);
+            results.innerHTML += `
+            <div>
+                <table id="Tabela">
+                    <thead>
+                        <tr id="linhaCabecalho">
+                        </tr>
+                    </thead>
+                    <tbody id="corpoTabela">
+                    </tbody>
+                </table>
+            </div>`;
+            let totalLinhas = 0;
+            let totalFrequencia = 0;
+            for (let z in objDados) {
+                totalLinhas++
+                totalFrequencia += objDados[z];
+            }
+            let tabelaAtual = document.getElementById(`Tabela`)
+            let cabecalho = tabelaAtual.getElementsByTagName('tr')[0];
+            let corpo = tabelaAtual.getElementsByTagName('tbody')[0];
+
+            //Escreve todas as linha da tabela
+            for (let z = 1; z <= totalLinhas; z++) {
+                corpo.innerHTML += `<tr></tr>`;
+            }
+
+            //Pegou todas as linhas da tabela
+            let linhas = tabelaAtual.getElementsByTagName('tr');
+
+            //Escrever Cabeçalho
+            cabecalho.innerHTML += `<th scope="col">${nome}</th>
+                                    <th scope="col">Frequencia Simples</th>
+                                    <th scope="col">FR%</th>
+                                    <th scope="col">FAC</th>
+                                    <th scope="col">FAC%</th>`;
+            let FrequenciaAtual = 0, FrequenciaPorAtual = 0;
+            //Escreve a Tabela
+            let js = 1, objMediana = {}, vetorGrafico = [];
+            for (let z in objDados) {
+                let linhaAtual = linhas[js];
+                linhaAtual.innerHTML = `<td>${z}</td>
+                                            <td>${objDados[z]}</td>
+                                            <td>${(objDados[z] / totalFrequencia * 100).toFixed(2)}</td>
+                                            <td>${FrequenciaAtual += objDados[z]}</td>
+                                            <td>${(FrequenciaPorAtual += objDados[z] / totalFrequencia * 100).toFixed(2)}</td>`;
+            }
+        } else if (tipoVar == 'Quantitativa Discreta') {
+            let results = document.getElementById('resultado');
+            dados.sort();
+            let objDados = separador(dados);
+            results.innerHTML += `
+            <div>
+                <table id="Tabela">
+                    <thead>
+                        <tr id="linhaCabecalho">
+                        </tr>
+                    </thead>
+                    <tbody id="corpoTabela">
+                    </tbody>
+                </table>
+            </div>`;
+            let totalLinhas = 0;
+            let totalFrequencia = 0;
+            for (let z in objDados) {
+                totalLinhas++
+                totalFrequencia += objDados[z];
+            }
+            let tabelaAtual = document.getElementById(`Tabela`)
+            let cabecalho = tabelaAtual.getElementsByTagName('tr')[0];
+            let corpo = tabelaAtual.getElementsByTagName('tbody')[0];
+
+            //Escreve todas as linha da tabela
+            for (let z = 1; z <= totalLinhas; z++) {
+                corpo.innerHTML += `<tr></tr>`;
+            }
+
+            //Pegou todas as linhas da tabela
+            let linhas = tabelaAtual.getElementsByTagName('tr');
+
+            //Escrever Cabeçalho
+            cabecalho.innerHTML += `<th scope="col">${nome}</th>
+                                    <th scope="col">Frequencia Simples</th>
+                                    <th scope="col">FR%</th>
+                                    <th scope="col">FAC</th>
+                                    <th scope="col">FAC%</th>`;
+            let FrequenciaAtual = 0, FrequenciaPorAtual = 0;
+            //Escreve a Tabela
+            let js = 1, objMediana = {}, vetorGrafico = [];
+            for (let z in objDados) {
+                let linhaAtual = linhas[js];
+                linhaAtual.innerHTML = `<td>${z}</td>
+                                            <td>${objDados[z]}</td>
+                                            <td>${(objDados[z] / totalFrequencia * 100).toFixed(2)}</td>
+                                            <td>${FrequenciaAtual += objDados[z]}</td>
+                                            <td>${(FrequenciaPorAtual += objDados[z] / totalFrequencia * 100).toFixed(2)}</td>`;
+            }
+        }
+    }
+
+</script>
+
+</html>
