@@ -1,0 +1,55 @@
+Bootstrap possui classes que gerenciam margens externas e externas:
+
+Como elas funcionam:
+{propriedade}{lado}-{ponto_de_quebra}-{tamanho}
+
+Propriedade:
+
+m - margem externa (margin)
+
+p - margem interna (padding)
+
+
+Lado: 
+
+t - margin-top ou padding-top
+
+b - margin-bottom ou padding-bottom
+
+l - margin-left ou padding-left
+
+r - margin-right ou padding-right
+
+x - padding-left e padding-right ou margin-left e margin-right
+
+y - padding-top e padding-bottom ou margin-top e margin-bottom
+
+blank - todos os lados de um elemento
+
+Ponto de quebra:
+
+xs (<=576px, deixe em branco para esse ponto de quebra) 
+sm (>=576px) 
+md (>=768px) 
+lg (>=992px) 
+xl (>=1200px))
+
+
+Tamanho:
+
+0 - margem 0
+
+1 - margem de .25rem (4px se o tamanho da fonte for 16px)
+
+2 - margem de .5rem (8px se o tamanho da fonte for 16px)
+
+3 - margem de 1rem (16px se o tamanho da fonte for 16px)
+
+4 - margem de 1.5rem (24px se o tamanho da fonte for 16px)
+
+5 - margem de 3rem (48px se o tamanho da fonte for 16px)
+
+auto - margem definida automaticamente
+
+
+Fonte: https://www.w3schools.com/bootstrap4/bootstrap_utilities.asp
