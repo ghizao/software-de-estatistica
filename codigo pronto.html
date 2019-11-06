@@ -1,0 +1,987 @@
+<!DOCTYPE html>
+<html>
+<script>
+  //Declaração Variaveis
+  //Declaração Variaveis
+  let debug = 1; //Liga e desliga o debug no F12
+  let tipoDeCalculo = 0;
+  let opcao = 0;
+  let opcaoProbabilidade = 0;
+  let opcaoUniforme = -1;
+  let opcaoBinomial2 = -1;
+  let opcaoNormal = 0;
+  let jaCalculado = false; //Controla se já foi executado algum calculo para poder apagar as tabelas geradas
+  let temCopia = false; //Controla se tem copia dos dados da tabela quali
+  let dadosGerais = new Object();
+  let dadosUniforme = new Object();
+  let dadosBinomial = new Object();
+  let jaCalculadoCorrelacao = false;
+  let correlacaoImportada = false;
+  let dadosCorrelacao = new Object();
+  let calculouCorrelacao = false;
+
+</script>
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale = 1, shrink-to-fit=no">
+
+  <meta charset="utf-8">
+
+  <meta name="viewport" content="width=device-width, initial-scale = 1, shrink-to-fit=no">
+  <link rel="stylesheet" type="text/css" href="css/Chart.css" />
+  <script src="js/jquery-3.2.1.min.js"></script>
+  <script src="js/popper.min.js"></script>
+  <script src="js/bootstrap.min.js"></script>
+  <script src="js/Chart.js"></script>
+  <script src="src/funcoes.js"></script>
+  <script src="src/distNormal.js"></script>
+  <script src="src/correlaco.js"></script>
+  <script src="src/newGrafico.js"></script>
+  <link href="node_modules/bootstrap/dist/css/bootstrap.css" rel="stylesheet">
+  <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css"
+    integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
+  <link href="https://fonts.googleapis.com/css?family=Lato&display=swap" rel="stylesheet">
+  <link rel="shortcut icon" type="image/x-icon" href="img/favicon-logo.ico">
+  <link rel="stylesheet" href="css/style.css">
+  <title>Statisticus</title>
+</head>
+
+<body>
+  <div id="fundo_login">
+    <div id="modal_login">
+      <img src="img/usuario.png" id="img_usuario">
+      <input type="text" id="login_usuario" placeholder="Usuário"></input>
+      <input type="text" id="senha_usuario" placeholder="Senha"></input>
+      <div><input type="checkbox" id="lembrar">&nbspLembrar-se<a href="#" style="margin-right:10%;float:right;">esqueceu
+          a senha?</a></div>
+      <button type="button" id="login_button" onclick="logado();">Login</button>
+    </div>
+  </div>
+  <header class="header" id="headerx">
+    <div class="header__logo-box">
+      <a href="#"><img src="img/logo-white.png" alt="Statisticus" class="header__logo">
+        <p id="statisticus_logo_mobile">Statisticus</p>
+        <p id="statisticus_sub_logo_mobile">A Mágica Dos Números</p>
+      </a>
+    </div>
+    <div class="header__text-box">
+      <h1 class="heading-primary">
+        <span class="heading-primary--main">Statisticus</span>
+        <span class="heading-primary--sub">A mágica dos números</span>
+      </h1>
+
+      <a href="#" onclick="showLoginModal();" class="btn-custom btn-custom-white btn-custom-animated">Entre Agora!</a>
+    </div>
+  </header>
+
+
+  <!--<div>
+          <input type="button" name="bnt_Descritiva" id="bnt_Descritiva" onclick="tipoDeCalculo=0;"
+            value="Estatística Descritiva">
+          <input type="button" name="bnt_Probabilidade" id="bnt_Probabilidade" onclick="tipoDeCalculo=1;"
+            value="Probabilidade">
+          <input type="button" name="bnt_Correlacao" id="bnt_Correlacao" onclick="tipoDeCalculo=2;"
+            value="Correlação e Regressão">
+        </div>-->
+
+
+  <section id="content">
+    <div class="container-fluid">
+      <div class="border-success mb-3">
+        <div class="card-header">
+          <ul class="nav nav-tabs" id="myTab" role="tablist">
+            <li class="nav-item">
+              <a class="nav-link text-success active" id="descritiva-tab" data-toggle="tab" href="#descritiva"
+                role="tab">Estatística descritiva</a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link text-success" id="probabilidade-tab" data-toggle="tab" href="#probabilidade"
+                role="tab">Probabilidade</a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link text-success" id="correlacao-tab" data-toggle="tab" href="#correlacao"
+                role="tab">Correlação e Regressão</a>
+            </li>
+          </ul>
+        </div>
+        <div class="card-body">
+          <div class="tab-content" id="nav-tabContent">
+            <div class="tab-pane fade show active" id="descritiva" role="tabpanel">
+              <h5 class="card-title">Estatística descritiva</h5>
+              <div>
+                <input type="radio" name="rad_Pesquisa" value="0" onclick="opcao=(this.value)" checked>População<br>
+                <input type="radio" name="rad_Pesquisa" value="-1" onclick="opcao=(this.value)">Amostra<br>
+              </div>
+              <form>
+                <div class="form-row">
+                  <div class="form-group col-sm-12 col-md-6">
+                    <label for="nomeVariavel">Informe o nome da variável</label>
+                    <input type="text" class="form-control" value='' placeholder="Variável Pesquisada (xi)"
+                      name="nomeVariavel" id="nomeVariavel">
+                  </div>
+                  <div class="form-group col-sm-12 col-md-6">
+                    <label for="nomeDescricao">Informe o label da coluna de frequência (opcional)</label>
+                    <input type="text" class="form-control" name="nomeDescricao" value='' placeholder="Frequência (fi)"
+                      id="nomeDescricao">
+                  </div>
+                </div>
+                <div>
+                  <label for="inputText">Digite os valores separados por espaço ou ";"</label>
+                  <textarea name="inputText" class="form-control" id="inputText"></textarea>
+                </div>
+                <br>
+                <div class="row">
+                  <div class="col-md-1 col-sm-6">
+                    <button type="button" class="btn btn-success" name="bnt_initCalc" id="bnt_initCalc"
+                      onclick="initCalc()" value="Calcular">Calcular</button>
+                  </div>
+                  <div class="col-md-2 col-sm-6">
+                    <label for="inputFile">
+                      <p class="import_arquivo">Importar Arquivo</p>
+                    </label>
+                    <input type="file" name="inputFile" id="inputFile" accept=".txt, .csv" onchange="tryLoad(1)"
+                      style="display:none;">
+                  </div>
+
+
+                </div>
+
+                <div class="form-group">
+                  <label for="quartil">Escolha uma medida Separatriz:</label>
+                  <select class="form-control col-md-6" id="cmb_separatirz"
+                    onchange="changeComboSeparatriz(this.value)">
+                    <option value="4">Quartil</option>
+                    <option value="5">Quintil</option>
+                    <option value="10">Decil</option>
+                    <option value="100">Percentil</option>
+                    <option value="1000">Personalizado</option>
+                  </select>
+                  <div class="slidecontainer">
+                    <label id="lblMin">1</label>
+                    <input type="button" value="-" id="btnSub" onclick="changeSlideValue(this.value)">
+                    <input type="range" min="1" max="4" value="1" class="slider" id="slider"
+                      onchange="setSlideValue(this.value)" oninput="setSlideValue(this.value)" ;>
+                    <input type="button" value="+" id="btnAdd" onclick="changeSlideValue(this.value)">
+                    <label id="lblMax">4</label><br>
+                    <input type="text" id="txtPersonalizado" value="1" onkeyup="setValorPersonalizado(this.value)">
+                    <input type="button" value="Calcular Separatriz" onclick="calculaS()" id="bntCalcularSeparatriz">
+                  </div>
+                </div>
+              </form>
+              <div>
+                <p id="separatriz"></p>
+              </div>
+              <div>
+                <p id="media"></p>
+              </div>
+              <div>
+                <p id="moda"></p>
+              </div>
+              <div>
+                <p id="mediana"></p>
+              </div>
+              <div>
+                <p id="dp"></p>
+              </div>
+              <div>
+                <p id="coeficienteVariacao"></p>
+              </div>
+              <div class="row">
+                <div class="col-md-6 col-sm-12">
+                  <div id="tabela">
+
+                  </div>
+                </div>
+                <div class="col-md-6 col-sm-12">
+                  <div id="divGrafico2" name="divGrafico2">
+                    <canvas name="graficosGeral" id="graficosGeral" height="150" width="150"
+                      style="max-height: 300; max-width: 300;"></canvas>
+                    <div id="posterior"></div>
+                  </div>
+                </div>
+              </div>
+
+            </div>
+            <div class="tab-pane fade" id="probabilidade" role="tabpanel">
+              <h5 class="card-title">Probabilidade</h5>
+              <div>
+                <input type="button" onclick="selectProbUnif();" value="Uniforme" class="select_prob">
+                <input type="button" onclick="selectProbBino();" value="Binomial" class="select_prob">
+                <input type="button" onclick="selectProbNorm();" value="Normal" class="select_prob">
+              </div>
+              <br>
+              <br>
+              <div id="uniforme">
+                <p>Distribuição Uniforme</p>
+                <form>
+                  <div class="form-row">
+                    <div class="form-group col-md-4 col-sm-4">
+                      <label for="pontoInicial" class=" col-form-label control-label">Valor Inicial</label>
+                      <input type="text" class="form-control" name="pontoInicial" id="pontoInicial">
+                    </div>
+                    <div class="form-group col-md-4 col-sm-12">
+                      <label for="pontoFinal" class="col-form-label control-label">Valor Final</label>
+                      <input type="text" class="form-control" name="pontoFinal" id="pontoFinal">
+                    </div>
+                  </div>
+
+                  <div>
+                    <div class="form-check form-check-inline">
+                      <input type="radio" class="form-check-input" name="rad_uniforme" value="-1"
+                        onclick="opcaoUniforme=(this.value)" checked>
+                      <label for="rad_uniforme" class="form-check-label">Menor que </label>
+                    </div>
+                    <div class="form-check form-check-inline">
+                      <input type="radio" name="rad_uniforme" value="1" onclick="opcaoUniforme=(this.value)">
+                      <label for="rad_uniforme" class="form-check-label">Maior que </label>
+                    </div>
+
+                    <div class="form-check form-check-inline">
+                      <input type="radio" name="rad_uniforme" value="0" onclick="opcaoUniforme=(this.value)">
+                      <label for="rad_uniforme" class="form-check-label">Entre </label>
+                    </div>
+                    <br>
+                    <br>
+                    Intervalo:
+                    <div class="row">
+                      <div class="col-md-4 col-sm-12">
+                        <label for="probIntervaloInicial">De</label>
+                        <input type="text" name="probIntervaloInicil" id="probIntervaloInicial">
+                      </div>
+                      <div class="col-md-4 col-sm-12">
+                        <label for="probIntervaloFinal"> até </label>
+                        <input type="text" name="probIntervaloFinal" id="probIntervaloFinal">
+                      </div>
+                    </div>
+
+
+                  </div>
+                  <div>
+                    <p id="dpUniforme"></p>
+                  </div>
+                  <div>
+                    <p id="varianciaUniforme"></p>
+                  </div>
+                  <div>
+                    <p id="mediaUniforme"></p>
+                  </div>
+                  <div>
+                    <p id="probabilidadeUniforme"></p>
+                  </div>
+                  <div>
+                    <input type="button" name="bnt_initCalc2" id="bnt_initCalc2" onclick="CalcularUniforme()"
+                      value="Calcular">
+                  </div>
+                </form>
+              </div>
+              <div id="binomial">
+                <p>Distribuição Binomial</p>
+                <div class="form-row">
+                  <div class="form-group col-md-8 col-sm-12">
+                    <label for="tamanhoAmostra" class="control-label">Tamanho da Amostra</label>
+                    <input type="text" class="form-control" name="tamanhoAmostra" id="tamanhoAmostra">
+                  </div>
+                </div>
+                <div class="form-row">
+                  <div class="form-group col-md-4 col-sm-12">
+                    <label for="Sucesso" class="control-label">%Sucesso</label>
+                    <input type="text" class="form-control" name="Sucesso" id="sucesso">
+                  </div>
+                  <div class="form-group col-md-4 col-sm-12">
+                    <label for="Fracasso" class="control-label">%Fracasso</label>
+                    <input type="text" class="form-control" name="Fracasso" id="fracasso">
+                  </div>
+                </div>
+
+                <div>
+                  <div class="form-check form-check-inline">
+                    <input type="radio" class="form-check-input" name="rad_uniforme" value="-1"
+                      onclick="opcaoBinomial2=(this.value)" checked>
+                    <label for="rad_uniforme" class="form-check-label">Menor que</label>
+                  </div>
+                  <div class="form-check form-check-inline">
+                    <input type="radio" name="rad_uniforme" value="1" onclick="opcaoBinomial2=(this.value)">
+                    <label for="rad_uniforme" class="form-check-label">Maior que</label>
+                  </div>
+                  <div class="form-check form-check-inline">
+                    <input type="radio" name="rad_uniforme" value="0" onclick="opcaoBinomial2=(this.value)">
+                    <label for="rad_uniforme" class="form-check-label">Exatamente</label>
+                  </div>
+                  <br>
+
+                  <label for="binomial" class="control-label">Evento </label>
+                  <input type="text" class="form-control" name="binomial" id="">
+                </div>
+                <div>
+                  <p id="probalidadeBinomial"></p>
+                </div>
+                <div>
+                  <p id="mediaBinomial"></p>
+                </div>
+                <div>
+                  <p id="desvioPadraoBinomial"></p>
+                </div>
+                <div>
+                  <input type="button" name="bnt_initCalc2" id="bnt_initCalc2" onclick="CalcularBinomial()"
+                    value="Calcular">
+                </div>
+              </div>
+              <div id="normal">
+                <p>Distribuição Normal</p>
+                <div class="form-row">
+                  <div class="form-group col-md-2 col-sm-12">
+                    <label for="txtMedia" class="control-label">Média</label>
+                    <input type="text" class="form-control" name="txtMedia" id="txtMedia">
+                  </div>
+                  <div class="form-group col-md-2 col-sm-12">
+                    <label for="txtDesvioPadrao" class="control-label">Desvio Padrão</label>
+                    <input type="text" class="form-control" name="txtDesvioPadrao" id="txtDesvioPadrao">
+                  </div>
+                  <div class="form-group col-md-2 col-sm-12">
+                    <label for="txtVariancia" class="control-label">Variancia</label>
+                    <input type="text" class="form-control" name="txtVariancia" id="txtVariancia"
+                      onchange="preencheDesvioPelaVariancia(this.value)">
+                  </div>
+                </div>
+
+                <div>
+                  <div class="form-check form-check-inline">
+                    <input type="radio" name="rad_normal" value="0" onclick="validaNormal(this.value)" checked>
+                    <label for="rad_normal" class="form-check-label">Menor que </label>
+                  </div>
+
+                  <div class="form-check form-check-inline">
+                    <input type="radio" name="rad_normal" value="1" onclick="validaNormal(this.value)">
+                    <label for="rad_normal" class="form-check-label">Maior que </label>
+                  </div>
+
+                  <div class="form-check form-check-inline">
+                    <input type="radio" name="rad_normal" value="2" onclick="validaNormal(this.value)">
+                    <label for="rad_normal" class="form-check-label">Entre</label>
+                  </div>
+                </div>
+
+                <div>
+                  <label for="txtValIni" class="control-label">Valor </label>
+                  <input type="text" class="form-control" name="txtValIni" id="txtValIni">
+                </div>
+                <div>
+                  <label for="txtValFin" class="control-label" name="lblValFim" id="lblValFim"
+                    style="display:none;">Valor
+                    Final
+                  </label>
+                  <input type="text" class="form-control" name="txtValFin" id="txtValFin" style="display:none;">
+                </div>
+                <br>
+                <div>
+                  <p id="distribuicaoNormal"></p>
+                </div>
+                <div>
+                  <input type="button" name="bnt_initCalc3" id="bnt_initCalc3"
+                    onclick="preparaCalculoProbabilidadeNormal()" value="Calcular">
+                </div>
+              </div>
+            </div>
+            <div class="tab-pane fade" id="correlacao" role="tabpanel">
+              <h5 class="card-title">Correlação e Regressão</h5>
+              <div class=" card-body">
+                <div class="form-row">
+                  <div class="form-group col-md-3 col-sm-12">
+                    <label for="txtVarIndependente" class="control-label">Nome da variável independente
+                      (x<sub>i</sub>)</label>
+                    <input type="text" class="form-control" placeholder='Independente (xi)' name="txtVarIndependente"
+                      id="txtVarIndependente">
+                  </div>
+                  <div class="form-group col-md-3 col-sm-12">
+                    <label for="txtVarDependente" class="control-label">Nome da variável dependente
+                      (y<sub>i</sub>)</label>
+                    <input type="text" class="form-control" name="txtVarDependente" placeholder='Dependente (yi)'
+                      id="txtVarDependente">
+                  </div>
+                </div>
+
+                <div class="form-row">
+                  <div class="form-group col-md-6 col-sm-12">
+                    <label for="inputText" class="control-label">Digite os valores da variável independente separados
+                      por espaço ou ;</label>
+                    <textarea class="form-control" name="txtValoresIndependente" id="txtValoresIndependente"></textarea>
+                  </div>
+                </div>
+                <div class="form-row">
+                  <div class="form-group col-md-6 col-sm-12">
+                    <label for="inputText" class="control-label">Digite os valores da variável dependente separados por
+                      espaço ou ;</label>
+                    <textarea class="form-control" name="txtValoresDependente" id="txtValoresDependente"></textarea>
+                  </div>
+                </div>
+
+                <div>
+                  <textarea name="txtEscondido" id="txtEscondido" style="display: none;"></textarea>
+                </div>
+                <div>
+                  <p id="fatorCorrelacao"></p>
+                </div>
+                <br>
+                <div>
+                  <p id="formulaCorrelacao"></p>
+                </div>
+
+                <div>
+                  <p id="entradaPontos"></p>
+                  <p id="dadosNovoPonto"></p>
+                </div>
+                <br>
+                <div>
+                  <label for="inputFile2">
+                    <p class="import_arquivo"> Importar arquivo:</p>
+                  </label>
+                  <input type="file" name="inputFile2" id="inputFile2" style="display: none;" accept=".txt, .csv"
+                    onchange="tryLoad(2)">
+                </div>
+                <div>
+                  <input type="button" name="bntCalcCorrelacao" id="bntCalcCorrelacao" onclick="calcCorrelacao()"
+                    value="Calcular">
+                </div>
+                <div id="divGraficoCorrelacao">
+                  <div id="divCanvas">
+                    <div id="divGrafico3">
+                      <canvas id="graficoCorrelacao" height="150" width="150"
+                        style="max-height: 300; max-width: 300;"></canvas>
+                    </div>
+
+                  </div>
+                  <label for="escala">Fator da escala: (y<sub>i</sub>)</label>
+                  <input type="text" name="escala" value="2" id="escala" onchange="setaModMovimento(this.value)">
+                  <br>
+                  <input type="button" value="X+" name="aumentaZoomX" id="aumentaZoomX" onclick="zoom('x','+')">
+                  <input type="button" value="X-" name="diminuiZoomX" id="diminuiZoomX" onclick="zoom('x','-')">
+                  <br>
+                  <input type="button" value="Y+" name="aumentaZoomY" id="aumentaZoomY" onclick="zoom('y','+')">
+                  <input type="button" value="Y-" name="diminuiZoomY" id="diminuiZoomY" onclick="zoom('y','-')">
+                  <br>
+                  <input type="button" value="&larr;" name="moveE" id="moveE" onclick="moveX(-1)">
+                  <input type="button" value="&rarr;" name="moveD" id="moveD" onclick="moveX(1)">
+                  <input type="button" value="&uarr;" name="moveC" id="moveC" onclick="moveY(1)">
+                  <input type="button" value="&darr;" name="moveB" id="moveB" onclick="moveY(-1)">
+                  <input type="button" value="Centralizar" name="fit" id="fit" onclick="fit()">
+                </div>
+                <br>
+                <div id="divTabelaCorrelacao">
+
+                </div>
+                <br>
+              </div>
+
+              <br>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+</body>
+<script>
+  var unifSelect = document.getElementById("uniforme");
+  var binoSelect = document.getElementById("binomial");
+  var normSelect = document.getElementById("normal");
+  var contentVar = document.getElementById("content");
+  var loginModal = document.getElementById("fundo_login");
+  var headerx = document.getElementById("headerx");
+  var divGraficoCorrelacao = document.getElementById("divGraficoCorrelacao");
+
+  function selectProbUnif() {
+    unifSelect.style.display = "block";
+    binoSelect.style.display = "none";
+    normSelect.style.display = "none";
+  }
+  function selectProbBino() {
+    unifSelect.style.display = "none";
+    binoSelect.style.display = "block";
+    normSelect.style.display = "none";
+  }
+  function selectProbNorm() {
+    unifSelect.style.display = "none";
+    binoSelect.style.display = "none";
+    normSelect.style.display = "block";
+  }
+  function showLoginModal() {
+    loginModal.style.display = "block";
+  }
+  function logado() {
+    headerx.style.display = "none";
+    loginModal.style.display = "none";
+    contentVar.style.display = "block";
+  }
+
+  iniciaControlesSeparatriz();
+  //Função tryLoad é responsável por importar o arquivo
+  function tryLoad(x) {
+    let file;
+    let reader = new FileReader();
+    reader.addEventListener('load', function () {
+      let res = this.result;
+      if (x != 2) {
+        document.querySelector("#inputText").value = res;
+        imported = true;
+        initCalc();
+      } else {
+        document.querySelector("#txtEscondido").value = "";
+        document.querySelector("#txtEscondido").value = res;
+        correlacaoImportada = true;
+        calcCorrelacao();
+      }
+    });
+    reader.addEventListener('error', function () {
+      dadosGerais.arr = [];
+      imported = false;
+      correlacaoImportada = false;
+    });
+    if (x != 2) {
+      file = document.querySelector('#inputFile').files[0];
+    } else {
+      file = document.querySelector('#inputFile2').files[0];
+    }
+    if (file != undefined) {
+      let ext = file.name.split('.').pop();
+      if (ext == 'txt' || ext == 'csv') {
+        reader.readAsText(file);
+      } else {
+        alert("Arquivo inválido!");
+      }
+    }
+  };
+  function iniciaControlesSeparatriz() {
+    desligaSlide(false);
+    changeComboSeparatriz(04);
+  }
+  function desligaSlide(val) {
+    let slider = document.querySelector("#slider");
+    let btnSub = document.querySelector("#btnSub");
+    let btnAdd = document.querySelector("#btnAdd");
+    let personalizado = document.querySelector("#txtPersonalizado");
+    btnAdd.disabled = val;
+    btnSub.disabled = val;
+    slider.disabled = val;
+    personalizado.disabled = !val;
+  }
+  //Controle do slider
+  function setSlider(max) {
+    max = parseInt(max);
+    slider = document.querySelector("#slider");
+    slider.value = 1;
+    slider.max = max;
+    document.querySelector("#lblMin").innerHTML = slider.min;
+    document.querySelector("#lblMax").innerHTML = slider.max;
+    document.querySelector("#txtPersonalizado").value = slider.value;
+    slideHasChange();
+  }
+  function setSlideValue(valor) {
+    document.querySelector('#txtPersonalizado').value = valor;
+    slideHasChange();
+  }
+  function setValorPersonalizado(valor) {
+    let txt = document.querySelector('#txtPersonalizado');
+    if (event.keyCode == 13) {
+      if (isNaN(valor) || valor < 1 || valor > 100) {
+        valor = 1;
+        alert("O valor da separatriz deve ser um número entre 1 e 100.");
+        txt.value = 1;
+        txt.focus();
+        txt.select();
+      }
+      if (valor >= 1 && valor <= 100) {
+        txt.value = valor;
+        dadosGerais.valorDaSeparatriz = parseFloat(valor);
+        calculaS();
+      }
+    }
+    if (debug) {
+      showDebug();
+    }
+  }
+  function calculaS() {
+    let fa;
+    if (jaCalculado) {
+      if (temCopia) {
+        fa = dadosGerais.copiaFrequenciaAcumulada;
+      } else {
+        fa = dadosGerais.frequenciaAcumulada;
+      }
+      dadosGerais.resultadoDaSeparatrizEscolhida = calculaSeparatriz(dadosGerais.varType, dadosGerais.valorDaSeparatriz, dadosGerais.medidaSeparatriz, dadosGerais.totalDeElementos, fa, dadosGerais.elementos, dadosGerais.contagemElementosPorClasse, dadosGerais.intervaloDeClasse, dadosGerais.elementosIniciais);
+      dadosGerais.valorEmPorcentagemSeparatriz = retornaPorcentagemSeparatriz(dadosGerais.medidaSeparatriz, dadosGerais.valorDaSeparatriz);
+      exibeSeparatriz(dadosGerais.resultadoDaSeparatrizEscolhida);
+    }
+    if (debug) {
+      showDebug();
+    }
+  }
+  function changeComboSeparatriz(valor) {
+    dadosGerais.medidaSeparatriz = retornaMedidaSeparatriz();
+    if (valor != 1000) {
+      desligaSlide(false);
+      setSlider(valor);
+    } else {
+      setSlider(100);
+      desligaSlide(true);
+      document.querySelector("#txtPersonalizado").focus();
+      document.querySelector("#txtPersonalizado").select();
+    }
+    if (debug) {
+      showDebug();
+    }
+  }
+  function slideHasChange() {
+    dadosGerais.valorDaSeparatriz = document.querySelector("#slider").value;
+    if (debug) {
+      showDebug();
+    }
+  }
+  function changeSlideValue(tipo) {
+    slider = document.querySelector("#slider");
+    if (tipo == '-') {
+      if (slider.value > 1) {
+        setSlideValue(--slider.value);
+      }
+    } else {
+      if (slider.value < parseInt(slider.max)) {
+        setSlideValue(++slider.value);
+      }
+    }
+  }
+  function CalcularUniforme() {
+    let PontoInicial = document.querySelector("#pontoInicial").value;
+    let PontoFinal = document.querySelector("#pontoFinal").value;
+    let IntervaloUniformeInicial = document.querySelector("#probIntervaloInicial").value;
+    let IntervaloUniformeFinal = document.querySelector("#probIntervaloFinal").value;
+    if ((IntervaloUniformeInicial.value < PontoFinal.value) || (IntervaloUniformeFinal.value > PontoInicial.value)) {
+      alert("O número informado esta fora do intervalo");
+    } else {
+      dadosUniforme = new Object();
+      dadosUniforme.PontoInicial = PontoInicial;
+      dadosUniforme.PontoFinal = PontoFinal;
+      dadosUniforme.IntervaloUniformeInicial = IntervaloUniformeInicial;
+      dadosUniforme.IntervaloUniformeFinal = IntervaloUniformeFinal;
+      dadosUniforme.variancia = retornaVariancia(dadosUniforme.PontoInicial, dadosUniforme.PontoFinal);
+      dadosUniforme.desvioPadrao = retornaDesvioPadraoUniforme(dadosUniforme.variancia);
+      dadosUniforme.media = retornaMedia('Uniforme', dadosUniforme.PontoInicial, 0, 0, dadosUniforme.PontoFinal, '', 0);
+      dadosUniforme.probalidade = retornaProbabilidade(dadosUniforme.PontoInicial, dadosUniforme.PontoFinal, dadosUniforme.IntervaloUniformeInicial, dadosUniforme.IntervaloUniformeFinal, opcaoUniforme);
+      exibeVariancia(dadosUniforme.variancia);
+      exibeDesvioPadraoUniforme(dadosUniforme.desvioPadrao);
+      exibeMedia(dadosUniforme.media, 'U');
+      exibeProbabilidade(dadosUniforme.probalidade);
+    }
+  }
+  function CalcularBinomial() {
+    let tamanhoAmostra = document.querySelector("#tamanhoAmostra").value;
+    let sucesso = document.querySelector("#sucesso").value;
+    let fracasso = document.querySelector("#fracasso").value;
+    let evento = document.querySelector("#binomial").value;
+    let passouBinomial = true;
+    if (tamanhoAmostra.value == "") {
+      alert("Você deve informar o tamanho da amostra");
+      passouBinomial = false;
+    }
+    if (tamanhoAmostra.value == "") {
+      alert("Você deve informar o(s) evento(s))");
+      passouBinomial = false;
+    }
+    if (tamanhoAmostra.value == "") {
+      alert("Você deve informar a taxa de sucesso");
+      passouBinomial = false;
+    }
+    if (tamanhoAmostra.value == "") {
+      alert("Você deve informar a taxa de fracasso");
+      passouBinomial = false;
+    }
+    if ((parseInt(sucesso) + parseInt(fracasso)) > 100) {
+      alert("A taxa de fracasso e de acerto ultrapassaram 100%, digite valores corretos");
+      passouBinomial = false;
+    }
+    if (passouBinomial) {
+      dadosBinomial = new Object();
+      dadosBinomial.tamanhoAmostra = tamanhoAmostra;
+      dadosBinomial.sucesso = sucesso;
+      dadosBinomial.fracasso = fracasso;
+      dadosBinomial.evento = evento;
+      dadosBinomial.valida = validaValores(dadosBinomial.Evento, dadosBinomial.tamanhoAmostra);
+      if (dadosBinomial.valida == false) {
+        alert("Os valores do evento estao inválidos");
+      } else {
+        dadosBinomial.total = retornaTotalBinomial(dadosBinomial.evento, dadosBinomial.sucesso, dadosBinomial.fracasso, dadosBinomial.tamanhoAmostra, opcaoBinomial2);
+        dadosBinomial.desvioPadrao = retornaDesvioPadraoBinomial(dadosBinomial.tamanhoAmostra, dadosBinomial.sucesso, dadosBinomial.fracasso)
+        dadosBinomial.media = retornaMediaBinomial(dadosBinomial.tamanhoAmostra, dadosBinomial.sucesso)
+        exibeDesvioPadraoBinomial(dadosBinomial.desvioPadrao);
+        exibeMediaBinomial(dadosBinomial.media);
+        exibeTotalBinomail(dadosBinomial.total);
+      }
+    }
+  }
+  //Inicío dos cálculos
+  function initCalc() {
+    temCopia = false;
+    let inptText = document.querySelector("#inputText");
+    if (inptText.value == "") {
+      alert("Você deve informar 1 ou mais valores antes de continuar!");
+    } else {
+      if (jaCalculado) {
+        destroiTabela();
+      }
+      jaCalculado = true;
+      dadosGerais = new Object();
+      dadosGerais.arr = [];//Vetor Principal
+      dadosGerais.valorEmPorcentagemSeparatriz = 0;
+      dadosGerais.valorDaSeparatriz = 1;
+      dadosGerais.typeOfCalculation = tipoDeCalculo;// 0-Descritiva, 1-Probabilidade, 2-Correlação
+      dadosGerais.tipoDePesquisa = opcao; //0-População, 1-Amostra
+      dadosGerais.varName = document.querySelector("#nomeVariavel").value; //Nome da variável a ser pesquisada
+      dadosGerais.varDescription = document.querySelector("#nomeDescricao").value;//Nome da coluna de frequencia
+      dadosGerais.varType = '';//Tipo da variável - qualitativa, discreta ou continua
+      dadosGerais.arr = processaInput(inptText.value);
+      if (checaSeTemLetras(dadosGerais.arr) == false) { dadosGerais.arr = converteEmNumeros(dadosGerais.arr); }
+      dadosGerais.arr = ordenaVetor(dadosGerais.arr);
+      dadosGerais.varType = verificaTipo(dadosGerais.arr); //Tipo da variável - qualitativa, discreta ou continua
+      dadosGerais.maiorElemento = retornaMaior(dadosGerais.arr, dadosGerais.varType);
+      dadosGerais.menorElemento = retornaMenor(dadosGerais.arr, dadosGerais.varType);
+      dadosGerais.totalDeElementos = dadosGerais.arr.length;
+      if (dadosGerais.varType != 'Qualitativa') {
+        dadosGerais.amplitude = calcAmplitude(dadosGerais.maiorElemento, dadosGerais.menorElemento, dadosGerais.varType);
+      }
+      dadosGerais.elementos = contaElementos(dadosGerais.arr);
+      dadosGerais.qtdElementos = quantidadeElementos();
+      dadosGerais.frequenciaPercentualReal = calcFreqPerc(dadosGerais.qtdElementos, dadosGerais.arr.length);
+      dadosGerais.totalFrequenciaPercentualReal = calcTotalReal(dadosGerais.frequenciaPercentualReal);
+      dadosGerais.frequenciaAcumulada = calcFreqAcum(dadosGerais.qtdElementos);
+      dadosGerais.totalFrequenciaAcumuladaReal = calcTotalReal(dadosGerais.qtdElementos);
+      dadosGerais.frequenciaAcumuladaPercentualReal = calcFreqAcumPerc(dadosGerais.frequenciaPercentualReal, dadosGerais.qtdElementos);
+      if (dadosGerais.varType == 'Continua') {
+        //debugger;
+        dadosGerais.K = calcK(dadosGerais.arr);//Calcula K original (n linhas) será tualizado abaixo
+        let temporario = intervaloClasse(dadosGerais.amplitude, dadosGerais.K, dadosGerais.arr.length);
+        dadosGerais.K = temporario[1];
+        dadosGerais.intervaloDeClasse = temporario[0];
+        dadosGerais.elementosIniciais = retornaElementosIniciaisDasClasses(dadosGerais.elementos, dadosGerais.intervaloDeClasse, dadosGerais.K);
+        dadosGerais.elementosFinais = retornaElementosFinaisDaClasse(dadosGerais.elementosIniciais, dadosGerais.intervaloDeClasse, dadosGerais.K);
+        dadosGerais.contagemElementosPorClasse = contaPorClasse(dadosGerais.arr, dadosGerais.elementosIniciais, dadosGerais.elementosFinais);
+        dadosGerais.frequenciaAcumulada = calcFreqAcum(dadosGerais.contagemElementosPorClasse);
+        dadosGerais.frequenciaPercentualReal = calcFreqPerc(dadosGerais.contagemElementosPorClasse, dadosGerais.arr.length);
+        dadosGerais.frequenciaAcumuladaPercentualReal = calcFreqAcumPerc(dadosGerais.frequenciaPercentualReal, dadosGerais.contagemElementosPorClasse);
+      }
+      dadosGerais.totalFrequenciaPercentual = arredondaTotal(dadosGerais.totalFrequenciaPercentualReal);
+      if (dadosGerais.varType == 'Qualitativa') {
+        temCopia = true;
+        dadosGerais.copiaFrequenciaPercentualReal = dadosGerais.frequenciaPercentualReal.slice();
+        dadosGerais.copiaFrequenciaAcumulada = dadosGerais.frequenciaAcumulada.slice();
+        dadosGerais.copiaFrequenciaAcumuladaPercentualReal = dadosGerais.frequenciaAcumuladaPercentualReal.slice();
+        dadosGerais.copiaElementos = dadosGerais.elementos.slice();
+        dadosGerais.copiaQtdElementos = dadosGerais.qtdElementos.slice();
+        desenhaTabela(dadosGerais.arr, dadosGerais.varType, dadosGerais.varName, dadosGerais.varDescription, dadosGerais.copiaElementos, dadosGerais.copiaQtdElementos, dadosGerais.copiaFrequenciaPercentualReal, dadosGerais.copiaFrequenciaAcumulada, dadosGerais.copiaFrequenciaAcumuladaPercentualReal, dadosGerais.totalFrequenciaAcumuladaReal, dadosGerais.totalFrequenciaPercentual, dadosGerais.K, dadosGerais.elementosIniciais, dadosGerais.elementosFinais, dadosGerais.intervaloDeClasse, dadosGerais.contagemElementosPorClasse);
+      } else {
+        desenhaTabela(dadosGerais.arr, dadosGerais.varType, dadosGerais.varName, dadosGerais.varDescription, dadosGerais.elementos, dadosGerais.qtdElementos, dadosGerais.frequenciaPercentualReal, dadosGerais.frequenciaAcumulada, dadosGerais.frequenciaAcumuladaPercentualReal, dadosGerais.totalFrequenciaAcumuladaReal, dadosGerais.totalFrequenciaPercentual, dadosGerais.K, dadosGerais.elementosIniciais, dadosGerais.elementosFinais, dadosGerais.intervaloDeClasse, dadosGerais.contagemElementosPorClasse);
+      }
+      dadosGerais.pontoMedio = retornaPontoMedio(dadosGerais.varType, dadosGerais.elementosIniciais, dadosGerais.elementosFinais);
+      dadosGerais.media = retornaMedia(dadosGerais.varType, dadosGerais.elementos, dadosGerais.qtdElementos, dadosGerais.pontoMedio, dadosGerais.totalDeElementos, dadosGerais.arr, dadosGerais.contagemElementosPorClasse);
+      // debugger;
+      dadosGerais.moda = retornaModa(dadosGerais.elementos, dadosGerais.qtdElementos, dadosGerais.varType, dadosGerais.contagemElementosPorClasse, dadosGerais.pontoMedio);
+      dadosGerais.mediana = retornaMediana(dadosGerais.varType, dadosGerais.elementosIniciais, dadosGerais.totalDeElementos, dadosGerais.frequenciaAcumulada, dadosGerais.contagemElementosPorClasse, dadosGerais.intervaloDeClasse, dadosGerais.arr, dadosGerais.qtdElementos, dadosGerais.elementos);
+      dadosGerais.desvioPadrao = retornaDesvioPadrao(dadosGerais.varType, dadosGerais.elementos, dadosGerais.qtdElementos, dadosGerais.media, dadosGerais.totalDeElementos, dadosGerais.pontoMedio, dadosGerais.tipoDePesquisa, dadosGerais.contagemElementosPorClasse);
+      dadosGerais.coeficienteVariacao = retornaCoeficienteVariacao(dadosGerais.desvioPadrao, dadosGerais.media);
+      exibeModa(dadosGerais.moda);
+      exibeMedia(dadosGerais.media, 'D');
+      exibeMediana(dadosGerais.mediana);
+      exibeDesvioPadrao(dadosGerais.desvioPadrao);
+      exibeCoeficienteVariacao(dadosGerais.coeficienteVariacao);
+      dadosGerais.medidaSeparatriz = retornaMedidaSeparatriz();
+      let filho = "";
+      filho = document.querySelector('#graficosGeral');
+      let posterior = document.querySelector('#posterior');
+      let pai = filho.parentNode;
+      filho = pai.removeChild(filho);
+      filho = document.createElement("canvas");
+      pai.insertBefore(filho, posterior);
+      filho.setAttribute("id", "graficosGeral");
+      filho.setAttribute("height", "150");
+      filho.setAttribute("width", "150");
+      filho.setAttribute("style", "max-height: 300; max-width: 300;");
+      if (dadosGerais.varType == 'Qualitativa') {
+        criaGraficoPizza(filho, dadosGerais.elementos, dadosGerais.qtdElementos);
+      }
+      if (dadosGerais.varType == 'Discreta') {
+        criaGraficoDeColunas(filho, dadosGerais.elementos, dadosGerais.qtdElementos);
+      }
+      if (dadosGerais.varType == 'Continua') {
+        criaGraficoContinua(filho, dadosGerais.elementosIniciais, dadosGerais.contagemElementosPorClasse);
+      }
+      if (debug) {
+        showDebug();
+      }
+    }
+  }
+  //Exibe as informações de debug
+  function showDebug() {
+    //console.clear();
+    for (let i in dadosGerais) {
+      if (dadosCorrelacao.hasOwnProperty(i)) {
+        console.log("dadosCorrelação." + i + " = " + dadosGerais[i]);
+      }
+    }
+  }
+  function sobe(pos) {
+    if (pos > 0) {
+      move(pos, -1);
+    }
+  }
+  function desce(pos, limite) {
+    if (pos < limite) {
+      move(pos, 1);
+    }
+  }
+  function move(pos, mult) {
+    destroiTabela();
+    dadosGerais.copiaQtdElementos = trocaElementoDoArray(dadosGerais.copiaQtdElementos, pos, pos + mult);
+    dadosGerais.copiaElementos = trocaElementoDoArray(dadosGerais.copiaElementos, pos, pos + mult);
+    dadosGerais.copiaFrequenciaPercentualReal = trocaElementoDoArray(dadosGerais.copiaFrequenciaPercentualReal, pos, pos + mult);
+    dadosGerais.copiaFrequenciaAcumulada = calcFreqAcum(dadosGerais.copiaQtdElementos);
+    dadosGerais.copiaFrequenciaAcumuladaPercentualReal = calcFreqAcumPerc(dadosGerais.copiaFrequenciaPercentualReal, dadosGerais.copiaQtdElementos);
+    desenhaTabela(dadosGerais.arr, dadosGerais.varType, dadosGerais.varName, dadosGerais.varDescription, dadosGerais.copiaElementos, dadosGerais.copiaQtdElementos, dadosGerais.copiaFrequenciaPercentualReal, dadosGerais.copiaFrequenciaAcumulada, dadosGerais.copiaFrequenciaAcumuladaPercentualReal, dadosGerais.totalFrequenciaAcumuladaReal, dadosGerais.totalFrequenciaPercentual);
+    dadosGerais.mediana = retornaMediana(dadosGerais.varType, dadosGerais.elementosIniciais, dadosGerais.totalDeElementos, dadosGerais.frequenciaAcumulada, dadosGerais.contagemElementosPorClasse, dadosGerais.intervaloDeClasse, dadosGerais.arr, dadosGerais.copiaQtdElementos, dadosGerais.copiaElementos);
+    exibeMediana(dadosGerais.mediana);
+    if (debug) {
+      showDebug();
+    }
+  }
+  function preparaCalculoProbabilidadeNormal() {
+    let media = parseFloat(document.querySelector("#txtMedia").value.replace(",", "."));
+    let desvioPad = parseFloat(document.querySelector("#txtDesvioPadrao").value.replace(",", "."));
+    let valorInicial = parseFloat(document.querySelector("#txtValIni").value.replace(",", "."));
+    let valorFinal = parseFloat(document.querySelector("#txtValFin").value.replace(",", "."));
+    let res = calcularNormal(media, desvioPad, valorInicial, valorFinal);
+    document.querySelector('#distribuicaoNormal').innerHTML = 'A probabilidade é de ' + (parseFloat(res) * 100).toFixed(2) + '%';
+  }
+  function preencheDesvioPelaVariancia(x) {
+    document.querySelector("#txtDesvioPadrao").value = Math.sqrt(parseFloat(x));
+  }
+  function calcCorrelacao() {
+    divGraficoCorrelacao.style.display = "block";
+    document.querySelector("#inputFile2").value = "";
+    if (calculouCorrelacao == true) {
+      apagaGrafico('graficoCorrelacao');
+      document.querySelector("#formulaCorrelacao").innerHTML = "";
+      document.querySelector("#entradaPontos").innerHTML = "";
+      document.querySelector("#fatorCorrelacao").innerHTML = "";
+      document.querySelector("#divTabelaCorrelacao").innerHTML = "";
+      document.querySelector("#entradaPontos").innerHTML = "";
+    } else {
+      calculouCorrelacao = true;
+    }
+    let inptText = document.querySelector("#txtEscondido");
+    let inptIndependente = document.querySelector("#txtValoresIndependente");
+    let inptDependente = document.querySelector("#txtValoresDependente");
+    if (!correlacaoImportada) {
+      inptText.value = inptIndependente.value + " " + inptDependente.value;
+    }
+    if (inptText.value == "" || inptText.value == " ") {
+      divGraficoCorrelacao.style.display = "none";
+      alert("Você deve informar 1 ou mais valores antes de continuar!");
+      return false;
+    }
+    dadosCorrelacao = new Object();
+    dadosCorrelacao.ctx = document.querySelector("#graficoCorrelacao");
+    dadosCorrelacao.arr = [];
+    dadosCorrelacao.arr = processaInput(inptText.value);
+    if (checaSeTemLetras(dadosCorrelacao.arr) == false) { dadosCorrelacao.arr = converteEmNumeros(dadosCorrelacao.arr); }
+    if (dadosCorrelacao.arr.length % 2 != 0) {
+      alert("Erro! As variáveis devem possuir o mesmo número de elementos!");
+      inptText.value = "";
+      return false;
+    }
+    dadosCorrelacao.tamanhoArr = dadosCorrelacao.arr.length;
+    if (dadosCorrelacao.tamanhoArr < 4) {
+      divGraficoCorrelacao.style.display = "none";
+      alert("Erro! É necessário que cada variável possua pelo menos dois elementos!");
+      inptText.value = "";
+      return false;
+    }
+    for (let i = 0; i < dadosCorrelacao.arr.length; i++) {
+      if (isNaN(dadosCorrelacao.arr[i])) {
+        divGraficoCorrelacao.style.display = "none";
+        alert("Erro! Apenas números podem ser informados!");
+        inptText.value = "";
+        return false;
+      }
+    }
+    dadosCorrelacao.textoVarIndependente = document.querySelector("#txtVarIndependente").value;
+    dadosCorrelacao.textoVarDependente = document.querySelector("#txtVarDependente").value;
+    dadosCorrelacao.pontoDeDivisao = (dadosCorrelacao.tamanhoArr / 2);
+    dadosCorrelacao.x = retornaVarArr(dadosCorrelacao.arr, 0, dadosCorrelacao.pontoDeDivisao);
+    dadosCorrelacao.y = retornaVarArr(dadosCorrelacao.arr, dadosCorrelacao.pontoDeDivisao, dadosCorrelacao.tamanhoArr);
+    inptIndependente.value = retornaTexto(dadosCorrelacao.x);
+    inptDependente.value = retornaTexto(dadosCorrelacao.y);
+    dadosCorrelacao.x2 = retornaQuadrado(dadosCorrelacao.x);
+    dadosCorrelacao.y2 = retornaQuadrado(dadosCorrelacao.y);
+    dadosCorrelacao.somaX = retornaSoma(dadosCorrelacao.x);
+    dadosCorrelacao.somaY = retornaSoma(dadosCorrelacao.y);
+    dadosCorrelacao.somaX2 = retornaSoma(dadosCorrelacao.x2);
+    dadosCorrelacao.somaY2 = retornaSoma(dadosCorrelacao.y2);
+    dadosCorrelacao.XvezesY = retornaMultiplicacao(dadosCorrelacao.x, dadosCorrelacao.y);
+    dadosCorrelacao.somaXvezesY = retornaSoma(dadosCorrelacao.XvezesY);
+    dadosCorrelacao.n = dadosCorrelacao.x.length;
+    dadosCorrelacao.r = retornaCorrelacao(dadosCorrelacao.n, dadosCorrelacao.somaX, dadosCorrelacao.somaY, dadosCorrelacao.somaX2, dadosCorrelacao.somaY2, dadosCorrelacao.somaXvezesY);
+    dadosCorrelacao.a = retornaA(dadosCorrelacao.n, dadosCorrelacao.somaX, dadosCorrelacao.somaY, dadosCorrelacao.somaX2, dadosCorrelacao.somaXvezesY);
+    dadosCorrelacao.b = retornaB(dadosCorrelacao.somaX, dadosCorrelacao.somaY, dadosCorrelacao.n, dadosCorrelacao.a);
+    dadosCorrelacao.menorX = retornaMenor(dadosCorrelacao.x, "menor");
+    dadosCorrelacao.maiorX = retornaMaior(dadosCorrelacao.x, "maior");
+    dadosCorrelacao.menorY = retornaMenor(dadosCorrelacao.y, "menor");
+    dadosCorrelacao.maiorY = retornaMaior(dadosCorrelacao.y, "maior");
+    document.querySelector("#formulaCorrelacao").innerHTML = `Equação da reta: <b>Y</b> = ${dadosCorrelacao.a.toFixed(2)}<b>X</b> + ${dadosCorrelacao.b.toFixed(2)}`;
+    document.querySelector("#entradaPontos").innerHTML = `
+                <p id="x1">${dadosCorrelacao.a.toFixed(2)} * X(</p><input size="1" type="text" name="newX" id="newX" value=0 onkeyup="adicionaNovoPonto('x',this.value)"><p id="y1">) + ${dadosCorrelacao.b.toFixed(2)} = Y(</p><input size="1" type="text" name="newY" id="newY" value=0 onkeyup="adicionaNovoPonto('y',this.value)">)
+                 `;
+    document.querySelector("#fatorCorrelacao").innerHTML = retornaGrauDeCorrelacao(dadosCorrelacao.r, dadosCorrelacao.textoVarIndependente, dadosCorrelacao.textoVarDependente);
+    dadosCorrelacao.dadosDoGrafico = convertToPoint(dadosCorrelacao.x, dadosCorrelacao.y);
+    iniciaVariaveis();
+    removeTodosDatasets();
+    setaLabelX(dadosCorrelacao.textoVarIndependente);
+    setaLabelY(dadosCorrelacao.textoVarDependente);
+    setaTipo('line');
+    setaAeB(dadosCorrelacao.a, dadosCorrelacao.b);
+    criaGrafico('graficoCorrelacao');
+    //desenha a linha primeiro (deve ser sempre o primeiro dataset)
+    let labelLinha = `Linha: ${dadosCorrelacao.a.toFixed(2)}X + ${dadosCorrelacao.b.toFixed(2)} = Y`;
+    adicionaDataset(labelLinha, 'line', geraLinha(), '#000000', 1, true, false);
+    adicionaDataset('Pontos', 'line', dadosCorrelacao.dadosDoGrafico, geraRGB(), 1, false, true);
+    adicionaDataset('Personalizado', 'line', [], "red", 2, false, true);
+    geraTabelaCorr(dadosCorrelacao.x, dadosCorrelacao.y, dadosCorrelacao.textoVarIndependente, dadosCorrelacao.textoVarDependente);
+    showDebug();
+    correlacaoImportada = false;
+    inptText.value = "";
+  }
+  function adicionaNovoPonto(eixo, valor) {
+    let xx = 0;
+    let yy = 0;
+    valor = parseFloat(valor);
+    if (event.keyCode == 13) {
+      //debugger;
+      if (eixo == 'x') {
+        xx = valor;
+        yy = dadosCorrelacao.a * valor + dadosCorrelacao.b;
+        dadosCorrelacao.x.push(xx);
+        dadosCorrelacao.y.push(yy);
+      } else {
+        xx = (valor - dadosCorrelacao.b) / dadosCorrelacao.a;
+        yy = valor;
+        dadosCorrelacao.y.push(yy);
+        dadosCorrelacao.x.push(xx);
+      }
+      geraTabelaCorr(dadosCorrelacao.x, dadosCorrelacao.y, dadosCorrelacao.textoVarIndependente, dadosCorrelacao.textoVarDependente);
+      adicionaPonto(2, xx, yy);
+      document.querySelector("#dadosNovoPonto").innerHTML = `O novo ponto adicionado tem coordenadas X=${xx.toFixed(2)} e Y=${yy.toFixed(2)}`;
+      document.querySelector("#newX").value = 0;
+      document.querySelector("#newY").value = 0;
+    }
+  }
+
+
+</script>
+
+</html>
